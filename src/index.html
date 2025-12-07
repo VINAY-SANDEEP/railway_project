@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en" ng-app="busBookingApp">
+<head>
+<meta charset="UTF-8">
+<title>Blue Bus Booking</title>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{padding:20px;background:#e8f0fe;font-family:Arial}
+  .card{max-width:850px;margin:auto;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(30,58,138,.2)}
+  .header{background:linear-gradient(90deg,#1e40af,#3b82f6);padding:16px;color:#fff}
+  .header h1{font-size:20px;margin-bottom:8px}
+  .steps{display:flex;gap:8px;font-size:12px}
+  .step{padding:4px 10px;border-radius:20px;border:1px solid #bfdbfe;cursor:pointer;background:rgba(255,255,255,.2);color:#e0f2fe}
+  .step.active{background:#fff;color:#1e40af;font-weight:bold}
+  .body{padding:18px;display:flex;gap:14px;flex-wrap:wrap}
+  .left{flex:2;min-width:300px}
+  .right{flex:1;min-width:230px}
+  .section{background:#f8fafc;padding:12px;border-radius:8px;border:1px solid #e2e8f0;margin-bottom:12px}
+  .section h3{margin:0 0 8px;color:#1e3a8a;font-size:15px}
+  label{display:block;font-size:12px;font-weight:bold;color:#475569;margin-bottom:2px}
+  input,select{width:100%;padding:7px;margin-bottom:8px;border-radius:6px;border:1px solid #cbd5e1;font-size:13px}
+  table{width:100%;border-collapse:collapse;background:#fff;border:1px solid #dbeafe;margin-top:6px}
+  th,td{padding:6px;border-bottom:1px solid #e2e8f0;font-size:13px}
+  th{background:#eff6ff;font-weight:bold;color:#1e40af}
+  .btn{padding:6px 10px;border-radius:20px;border:none;cursor:pointer;font-size:12px;margin-right:6px;margin-top:8px}
+  .btn-primary{background:#2563eb;color:#fff}
+  .btn-secondary{background:#e0f2fe;color:#1e40af;border:1px solid #bfdbfe}
+  .btn-danger{background:#fee2e2;color:#b91c1c;padding:4px 8px;margin:0}
+  .summary{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:12px}
+  .summary h3{margin:0 0 8px;font-size:15px;color:#1e3a8a}
+  .row{display:flex;justify-content:space-between;padding:3px 0;font-size:13px}
+  .total{border-top:1px dashed #cbd5e1;margin-top:8px;padding-top:6px;font-weight:bold}
+</style>
+</head>
+<body ng-controller="BookingCtrl as vm">
+<div class="card">
+  <div class="header">
+    <h1>Bus Ticket Booking</h1>
+    <div class="steps">
+      <div class="step" ng-class="{active:vm.step===1}" ng-click="vm.setStep(1)">1 Trip</div>
+      <div class="step" ng-class="{active:vm.step===2}" ng-click="vm.setStep(2)">2 Review</div>
+      <div class="step" ng-class="{active:vm.step===3}" ng-click="vm.setStep(3)">3 Pay</div>
+    </div>
+  </div>
+  <div class="body">
+    <div class="left">
+      <div ng-show="vm.step===1">
+        <div class="section">
+          <h3>Journey Details</h3>
+          <label>From</label>
+          <select ng-model="vm.data.from" ng-options="c for c in vm.cities"><option>Select</option></select>
+          <label>To</label>
+          <select ng-model="vm.data.to" ng-options="c for c in vm.cities"><option>Select</option></select>
+          <label>Date</label>
+          <input type="date" ng-model="vm.data.date">
+          <label>Bus Type</label>
+          <select ng-model="vm.data.type" ng-options="t.name for t in vm.busTypes track by t.code" ng-change="vm.updateFare()"><option>Select</option></select>
+        </div>
+        <div class="section">
+          <h3>Passengers</h3>
+          <table>
+            <tr><th>#</th><th>Name</th><th>Age</th><th>Gender</th><th></th></tr>
+            <tr ng-repeat="p in vm.passengers track by $index">
+              <td>{{$index+1}}</td>
+              <td><input ng-model="p.name"></td>
+              <td><input type="number" ng-model="p.age"></td>
+              <td><select ng-model="p.gender"><option>--</option><option>M</option><option>F</option></select></td>
+              <td><button class="btn btn-danger" ng-click="vm.remove($index)">X</button></td>
+            </tr>
+          </table>
+          <button class="btn btn-secondary" ng-click="vm.add()">+ Add</button>
+        </div>
+        <button class="btn btn-primary" ng-click="vm.setStep(2)">Next → Review</button>
+      </div>
+      <div ng-show="vm.step===2">
+        <div class="section">
+          <h3>Review Trip</h3>
+          <div><b>Route:</b> {{vm.data.from}} → {{vm.data.to}}</div>
+          <div><b>Date:</b> {{vm.data.date}}</div>
+          <div><b>Type:</b> {{vm.data.type.name}}</div>
+          <div><b>Passengers:</b> <li ng-repeat="p in vm.passengers">{{p.name}} ({{p.age}}y, {{p.gender}})</li></div>
+        </div>
+        <button class="btn btn-secondary" ng-click="vm.setStep(1)">← Back</button>
+        <button class="btn btn-primary" ng-click="vm.setStep(3)">Next → Payment</button>
+      </div>
+      <div ng-show="vm.step===3">
+        <div class="section">
+          <h3>Payment</h3>
+          <p>Click Pay Now to confirm booking.</p>
+          <button class="btn btn-primary" ng-click="vm.pay()">💳 Pay Now</button>
+        </div>
+        <button class="btn btn-secondary" ng-click="vm.setStep(2)">← Back</button>
+      </div>
+    </div>
+    <div class="right">
+      <div class="summary">
+        <h3>Fare Summary</h3>
+        <div class="row"><span>Fare/Person</span><span>₹{{vm.fare}}</span></div>
+        <div class="row"><span>Passengers</span><span>{{vm.passengers.length}}</span></div>
+        <div class="row total"><span>Total</span><span>₹{{vm.total()}}</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+angular.module("busBookingApp",[]).controller("BookingCtrl",function(){
+  var vm=this;
+  vm.step=1;
+  vm.cities=["Mumbai","Delhi","Bengaluru","Hyderabad","Chennai","Kolkata","Pune","Ahmedabad","Surat","Jaipur","Lucknow","Kanpur","Nagpur","Indore","Thane","Nashik","Vadodara","Bhopal","Visakhapatnam","Patna","Ludhiana","Agra","Varanasi","Meerut","Ranchi","Kochi","Coimbatore","Goa","Guwahati","Chandigarh","Mysuru","Madurai","Jodhpur","Raipur","Noida","Ghaziabad"];
+  vm.busTypes=[{code:"NON",name:"Non-AC",price:300},{code:"AC",name:"AC Seater",price:500},{code:"SLP",name:"Sleeper",price:800}];
+  vm.data={};
+  vm.passengers=[{name:"",age:"",gender:""}];
+  vm.fare=0;
+  vm.add=()=>vm.passengers.push({name:"",age:"",gender:""});
+  vm.remove=i=>vm.passengers.splice(i,1);
+  vm.updateFare=()=>vm.fare=vm.data.type?vm.data.type.price:0;
+  vm.total=()=>vm.fare*vm.passengers.length;
+  vm.setStep=s=>vm.step=s;
+  vm.pay=()=>alert("Payment Successful! Total: ₹"+vm.total());
+});
+</script>
+</body>
+</html>
